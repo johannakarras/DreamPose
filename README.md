@@ -41,3 +41,6 @@ You can finetune the base model on your own image and generate videos using a po
     python test.py --epoch 20 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
     ```
     
+### Acknowledgment
+
+This code is largely adapted from the [HuggingFace diffusers repo](https://github.com/huggingface/diffusers).
