@@ -15,13 +15,10 @@ You can generate a video using DreamPose using our pretrained models.
     ```
     python test.py --epoch 20 --folder checkpoints --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
     ```
+    
+## Download or Finetune Base Model
 
-## Data Preparation
-
-
-## Finetune Base Model
-
-DreamPose is finetuned on the UBC Fashion Dataset from a pretrained Stable Diffusion checkpoint. You can download our pretrained base model from Google Drive, or finetune pretrained Stable Diffusion on your own image dataset.
+DreamPose is finetuned on the UBC Fashion Dataset from a pretrained Stable Diffusion checkpoint. You can download our pretrained base model from Google Drive, or finetune pretrained Stable Diffusion on your own image dataset. We train on 2 NVIDIA A100 GPUs.
 
 ```
 accelerate launch --num_processes=4 train.py --pretrained_model_name_or_path="CompVis/stable-diffusion-v1-4" --instance_data_dir=../path/to/dataset --output_dir=checkpoints --resolution=512 --train_batch_size=2 --gradient_accumulation_steps=4 --learning_rate=5e-6 --lr_scheduler="constant" --lr_warmup_steps=0 --num_train_epochs=300 --run_name dreampose --dropout_rate=0.15 --revision "ebb811dd71cdc38a204ecbdd6ac5d580f529fd8c"
@@ -29,7 +26,7 @@ accelerate launch --num_processes=4 train.py --pretrained_model_name_or_path="Co
 
 ## Finetune on Sample
 
-In this next step, we finetune DreamPose on a one or more input frames to create a subject-specific model.
+In this next step, we finetune DreamPose on a one or more input frames to create a subject-specific model. 
 
 1. Finetune the UNet
 
