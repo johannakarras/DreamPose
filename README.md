@@ -1,6 +1,11 @@
 # DreamPose
 Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stable Diffusion" by Johanna Karras, Aleksander Holynski, Ting-Chun Wang, and Ira Kemelmacher-Shlizerman.
 
+ * [Project Page](https://https://grail.cs.washington.edu/projects/dreampose/)
+ * [Paper]()
+ 
+![Teaser Image](media/Teaser.png "Teaser")
+
 ## Demo
 
 You can generate a video using DreamPose using our pretrained models.
@@ -40,8 +45,10 @@ In this next step, we finetune DreamPose on a one or more input frames to create
 
 ## Testing
 
+Once you have finetuned your custom, subject-specific DreamPose model, you can generate frames using the following command:
+
 ```
-python test.py --epoch 20 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
+python test.py --epoch 499 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results --custom_vae demo/custom-chkpts/vae_1499.pth
 ```
 
 ### Acknowledgment
