@@ -1,5 +1,5 @@
 # DreamPose
-Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stable Diffusion"
+Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stable Diffusion" by Johanna Karras, Aleksander Holynski, Ting-Chun Wang, and Ira Kemelmacher-Shlizerman.
 
 ## Demo
 
@@ -11,36 +11,39 @@ You can generate a video using DreamPose using our pretrained models.
     python test.py --epoch 20 --folder checkpoints --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
     ```
 
-## Training
+## Data Preparation
 
 
-## Testing
+## Finetune Base Model
 
-You can finetune the base model on your own image and generate videos using a pose sequence.
+DreamPose is finetuned on the UBC Fashion Dataset from a pretrained Stable Diffusion checkpoint. You can download our pretrained base model from Google Drive, or finetune pretrained Stable Diffusion on your own image dataset.
 
-1. Data preparation
+```
+accelerate launch --num_processes=4 train.py --pretrained_model_name_or_path="CompVis/stable-diffusion-v1-4" --instance_data_dir=../path/to/dataset --output_dir=checkpoints --resolution=512 --train_batch_size=2 --gradient_accumulation_steps=4 --learning_rate=5e-6 --lr_scheduler="constant" --lr_warmup_steps=0 --num_train_epochs=300 --run_name dreampose --dropout_rate=0.15 --revision "ebb811dd71cdc38a204ecbdd6ac5d580f529fd8c"
+```
 
-  demo/sample/train-frame
-    
+## Finetune on Sample
 
-2. Finetune the UNet
+In this next step, we finetune DreamPose on a one or more input frames to create a subject-specific model.
+
+1. Finetune the UNet
 
     ```
     accelerate launch finetune-unet.py --pretrained_model_name_or_path="CompVis/stable-diffusion-v1-4" --instance_data_dir=demo/sample/train --output_dir=demo/custom-chkpts --resolution=512 --train_batch_size=1 --gradient_accumulation_steps=1 --learning_rate=1e-5 --num_train_epochs=500 --dropout_rate=0.0 --custom_chkpt=checkpoints/unet_epoch_20.pth --revision "ebb811dd71cdc38a204ecbdd6ac5d580f529fd8c"
     ```
 
-3. Finetune the VAE decoder
+2. Finetune the VAE decoder
 
     ```
     accelerate launch --num_processes=1 finetune-vae.py --pretrained_model_name_or_path="CompVis/stable-diffusion-v1-4"  --instance_data_dir=demo/sample/train --output_dir=demo/custom-chkpts --instance_prompt="" --resolution=512  --train_batch_size=4 --gradient_accumulation_steps=4 --learning_rate=5e-5 --num_train_epochs=1500 --run_name finetuning/ubc-vae --revision "ebb811dd71cdc38a204ecbdd6ac5d580f529fd8c"
     ```
 
-4. Generate predictions
+## Testing
 
-    ```
-    python test.py --epoch 20 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
-    ```
-    
+```
+python test.py --epoch 20 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
+```
+
 ### Acknowledgment
 
 This code is largely adapted from the [HuggingFace diffusers repo](https://github.com/huggingface/diffusers).
