@@ -34,7 +34,7 @@ from torch.utils.tensorboard import SummaryWriter
 logger = get_logger(__name__)
 
 from utils.parse_args import parse_args
-from datasets.ubc_deepfashion_dataset import DreamPoseDataset
+from datasets.ubc_dataset import DreamPoseDataset
 from pipelines.dual_encoder_pipeline import StableDiffusionImg2ImgPipeline
 from models.unet_dual_encoder import get_unet, Embedding_Adapter
 
@@ -101,7 +101,7 @@ def main(args):
             )
 
     # Load pretrained UNet layers
-    unet = get_unet3(args.pretrained_model_name_or_path, args.revision, resolution=args.resolution)
+    unet = get_unet(args.pretrained_model_name_or_path, args.revision, resolution=args.resolution)
     #unet = get_unet('CompVis/stable-diffusion-v1-4')
 
     if args.custom_chkpt is not None:
