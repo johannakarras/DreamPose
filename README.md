@@ -1,7 +1,7 @@
 # DreamPose
 Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stable Diffusion" by Johanna Karras, Aleksander Holynski, Ting-Chun Wang, and Ira Kemelmacher-Shlizerman.
 
- * [Project Page](https://https://grail.cs.washington.edu/projects/dreampose/)
+ * [Project Page](https://grail.cs.washington.edu/projects/dreampose)
  * [Paper]()
  
 ![Teaser Image](media/Teaser.png "Teaser")
@@ -10,8 +10,8 @@ Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stab
 
 You can generate a video using DreamPose using our pretrained models.
 
-1. Unzip the pretrained models inside demo/custom-chkpts.zip
-2. Unzip the input poses inside demo/sample/poses.zip
+1. [Download](https://drive.google.com/drive/folders/15SaT3kZFRIjxuHT6UrGr6j0183clTK_D?usp=share_link) and unzip the pretrained models inside demo/custom-chkpts.zip
+2. [Download](https://drive.google.com/drive/folders/1CjzcOp_ZUt-dyrzNAFE0T8bS3cbKTsVG?usp=share_link) and unzip the input poses inside demo/sample/poses.zip
 3. Run demo.py using the command below:
     ```
     python test.py --epoch 499 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir demo/sample/results --custom_vae demo/custom-chkpts/vae_1499.pth
