@@ -10,10 +10,11 @@ Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stab
 
 You can generate a video using DreamPose using our pretrained models.
 
-1. Download pretrained models and store them into the "checkpoints" folder.
-2. Run demo.py using the command below:
+1. Unzip the pretrained models inside demo/custom-chkpts.zip
+2. Unzip the input poses inside demo/sample/poses.zip
+3. Run demo.py using the command below:
     ```
-    python test.py --epoch 20 --folder checkpoints --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir results
+    python test.py --epoch 499 --folder demo/custom-chkpts --pose_folder demo/sample/poses  --key_frame_path demo/sample/key_frame.png --s1 8 --s2 3 --n_steps 100 --output_dir demo/sample/results --custom_vae demo/custom-chkpts/vae_1499.pth
     ```
     
 ## Download or Finetune Base Model
