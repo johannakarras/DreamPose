@@ -112,7 +112,7 @@ class DreamPoseDataset(Dataset):
         poses = []
         h, w = 640, 512
         for pose_number in range(5):
-            dp_path = frame_path.replace('.png', '_densepose.npy')
+            dp_path = frame_j_path.replace('.png', '_densepose.npy')
             dp_i = F.interpolate(torch.from_numpy(np.load(dp_path).astype('float32')).unsqueeze(0), (h, w), mode='bilinear').squeeze(0)
             poses.append(self.tensor_transforms(dp_i))
         input_pose = torch.cat(poses, 0)
