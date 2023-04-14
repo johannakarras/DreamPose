@@ -51,4 +51,4 @@ python test.py --epoch 499 --folder demo/custom-chkpts --pose_folder demo/sample
 
 ### Acknowledgment
 
-This code is largely adapted from the [HuggingFace diffusers repo](https://github.com/huggingface/diffusers).
+This code is largely adapted from the [Hugging Face diffusers repo](https://github.com/huggingface/diffusers).
