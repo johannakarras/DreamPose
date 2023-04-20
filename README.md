@@ -2,7 +2,7 @@
 Official implementation of "DreamPose: Fashion Image-to-Video Synthesis via Stable Diffusion" by Johanna Karras, Aleksander Holynski, Ting-Chun Wang, and Ira Kemelmacher-Shlizerman.
 
  * [Project Page](https://grail.cs.washington.edu/projects/dreampose)
- * [Paper]()
+ * [Paper](https://arxiv.org/abs/2304.06025)
  
 ![Teaser Image](media/Teaser.png "Teaser")
 
