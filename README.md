@@ -43,7 +43,7 @@ In this next step, we finetune DreamPose on a one or more input frames to create
 2. Finetune the VAE decoder
 
     ```
-    accelerate launch --num_processes=1 finetune-vae.py --pretrained_model_name_or_path="CompVis/stable-diffusion-v1-4"  --instance_data_dir=demo/sample/train --output_dir=demo/custom-chkpts --instance_prompt="" --resolution=512  --train_batch_size=4 --gradient_accumulation_steps=4 --learning_rate=5e-5 --num_train_epochs=1500 --run_name finetuning/ubc-vae --revision "ebb811dd71cdc38a204ecbdd6ac5d580f529fd8c"
+    accelerate launch --num_processes=1 finetune-vae.py --pretrained_model_name_or_path="CompVis/stable-diffusion-v1-4"  --instance_data_dir=demo/sample/train --output_dir=demo/custom-chkpts --resolution=512  --train_batch_size=4 --gradient_accumulation_steps=4 --learning_rate=5e-5 --num_train_epochs=1500 --run_name finetuning/ubc-vae --revision "ebb811dd71cdc38a204ecbdd6ac5d580f529fd8c"
     ```
 
 ## Testing
@@ -56,4 +56,4 @@ python test.py --epoch 499 --folder demo/custom-chkpts --pose_folder demo/sample
 
 ### Acknowledgment
 
-This code is largely adapted from the [HuggingFace diffusers repo](https://github.com/huggingface/diffusers).
+This code is largely adapted from the [Hugging Face diffusers repo](https://github.com/huggingface/diffusers).
