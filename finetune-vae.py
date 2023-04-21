@@ -16,7 +16,6 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-#import lpips
 
 from accelerate import Accelerator
 from accelerate.logging import get_logger
@@ -34,8 +33,7 @@ from torch.utils.tensorboard import SummaryWriter
 logger = get_logger(__name__)
 
 from utils.parse_args import parse_args
-from datasets.train_vae_dataset import DreamBoothDataset
-from datasets.prompt_dataset import PromptDataset
+from datasets.train_vae_dataset import DreamPoseDataset
 from pipelines.dual_encoder_pipeline import StableDiffusionImg2ImgPipeline
 from models.unet_dual_encoder import get_unet, Embedding_Adapter
 
@@ -47,38 +45,6 @@ def get_full_repo_name(model_id: str, organization: Optional[str] = None, token:
         return f"{username}/{model_id}"
     else:
         return f"{organization}/{model_id}"
-
-def face_loss_(pred_frame_j, frame_j, joints_j, size=80):
-        #pred_frame_j, frame_j = torch.from_numpy(pred_frame_j), torch.from_numpy(frame_j)
-        joints_j = (32*joints_j).int()
-        b, c, h, w = frame_j.shape
-        size = size // 2
-
-        # initialize loss
-        face_loss = None
-
-        # store patch locations
-        patches = []
-
-        # iterate batches
-        for b_ in range(b):
-            # find location of face
-            _ , x1, y1 = torch.where(joints_j[b_,:,:,:] == 1)
-            x1_, y1_ = int(torch.mean(x1.float()))+20, int(torch.mean(y1.float()))+20
-
-            # get pred and gt face patches
-            #print(pred_frame_j[b_].shape, y1_+size)
-            pred_patch = pred_frame_j[b_, :, max(0,x1_-size):x1_+size, max(0,y1_-size):y1_+size].unsqueeze(0)
-            gt_patch = frame_j[b_, :, max(0,x1_-size):x1_+size, max(0,y1_-size):y1_+size].unsqueeze(0)
-            patches.extend([max(0,x1_-size), max(0,y1_-size), pred_patch.shape[2], pred_patch.shape[3]])
-
-            # compute l1-loss
-            if face_loss is None:
-                face_loss = torch.nn.L1Loss()(pred_patch.float(), gt_patch.float())
-            else:
-                face_loss += torch.nn.L1Loss()(pred_patch.float(), gt_patch.float())
-
-        return face_loss, patches
 
 def main(args):
     logging_dir = Path(args.output_dir, args.logging_dir)
@@ -125,22 +91,7 @@ def main(args):
 
             num_new_images = args.num_class_images - cur_class_images
             logger.info(f"Number of class images to sample: {num_new_images}.")
-
-            sample_dataset = PromptDataset(args.class_prompt, num_new_images)
-            sample_dataloader = torch.utils.data.DataLoader(sample_dataset, batch_size=args.sample_batch_size)
-
-            sample_dataloader = accelerator.prepare(sample_dataloader)
             pipeline.to(accelerator.device)
-
-            for example in tqdm(
-                sample_dataloader, desc="Generating class images", disable=not accelerator.is_local_main_process
-            ):
-                images = pipeline(example["prompt"]).images
-
-                for i, image in enumerate(images):
-                    hash_image = hashlib.sha1(image.tobytes()).hexdigest()
-                    image_filename = class_images_dir / f"{example['index'][i] + cur_class_images}-{hash_image}.jpg"
-                    image.save(image_filename)
 
             del pipeline
             if torch.cuda.is_available():
@@ -243,7 +194,7 @@ def main(args):
     noise_scheduler = DDPMScheduler.from_config(args.pretrained_model_name_or_path, subfolder="scheduler")
 
 
-    train_dataset = DreamBoothDataset(
+    train_dataset = DreamPoseDataset(
         instance_data_root=args.instance_data_dir,
         class_data_root=args.class_data_dir if args.with_prior_preservation else None,
         class_prompt=args.class_prompt,
@@ -251,25 +202,19 @@ def main(args):
         center_crop=args.center_crop,
     )
 
-    #train_dataset = DreamPoseDataset(instance_data_root='../UBC_Fashion_Dataset/dreampose2/91iZ9x8NI0S.mp4/train',size=512)
-
     def collate_fn(examples):
         frame_j = [example["frame_j"] for example in examples]
         poses = [example["pose_j"] for example in examples]
-        #joints = [example["joints_j"] for example in examples]
 
         frame_j = torch.stack(frame_j)
         poses = torch.stack(poses)
-        #joints = torch.stack(joints)
 
         frame_j = frame_j.to(memory_format=torch.contiguous_format).float()
         poses = poses.to(memory_format=torch.contiguous_format).float()
-        #joints = joints.to(memory_format=torch.contiguous_format).float()
 
         batch = {
             "target_frame": frame_j,
             "poses": poses,
-            #"target_joints": joints,
         }
         return batch
 
@@ -304,7 +249,6 @@ def main(args):
     vae.to(accelerator.device, dtype=weight_dtype)
     if not args.train_text_encoder:
         image_encoder.to(accelerator.device, dtype=weight_dtype)
-        #clip_processor.to(accelerator.device, dtype=weight_dtype)
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / args.gradient_accumulation_steps)
@@ -368,7 +312,6 @@ def main(args):
         first_batch = True
         for step, batch in enumerate(train_dataloader):
             if first_batch and latest_chkpt_step is not None:
-                #os.system(f"python test_img2img.py --step {latest_chkpt_step} --strength 0.8")
                 first_batch = False
             with accelerator.accumulate(vae):
                 # Convert images to latent space
@@ -380,16 +323,6 @@ def main(args):
                 pred_images = pred_images.clamp(-1, 1)
 
                 loss = F.mse_loss(pred_images.float(), batch['target_frame'].clamp(-1, 1).float(), reduction="mean")
-
-                # Compute face loss
-                if args.face_loss:
-                    target_images = batch["target_frame"].clamp(-1, 1)
-                    face_loss, face_patches = face_loss_(pred_images, target_images, batch['target_joints'], size=80)
-                    loss = loss + 0.001*face_loss
-                    #loss = face_loss
-                #else:
-                #    loss = F.mse_loss(pred_images.float(), batch['target_frame'].clamp(-1, 1).float(), reduction="mean")
-                #    #loss = lpips_loss(pred_images.float(), batch['target_frame'].clamp(-1, 1).float())
 
                 accelerator.backward(loss)
                 if accelerator.sync_gradients:
@@ -408,9 +341,6 @@ def main(args):
 
             # write to tensorboard
             writer.add_scalar("loss/train", loss.detach().item(), global_step)
-
-            if args.face_loss:
-                writer.add_scalar("face-loss/train", face_loss.detach().item(), global_step)
 
             # write to tensorboard
             if global_step % 10 == 0:
@@ -436,20 +366,7 @@ def main(args):
                 with torch.no_grad():
                     pred_images = inputs2img(pred_images)
                     target = inputs2img(batch["target_frame"])
-                    if args.face_loss:
-                        #face_patches = face_patches[0].item()
-                        x1, y1, h, w = int(face_patches[0]), int(face_patches[1]), face_patches[2], face_patches[3]
-                        pred = np.array((pred_images[0])).astype(np.uint8).transpose((1,2,0))
-                        pred = pred.copy()
-                        cv2.rectangle(pred, (y1, x1), (y1+w, x1+h), (255, 0, 0), 2)
-                        pred = pred.transpose((2,0,1))
-                        gt = np.array((target[0])).astype(np.uint8).transpose((1,2,0))
-                        gt = gt.copy()
-                        cv2.rectangle(gt, (y1, x1), (y1+w, x1+h), (255, 0, 0), 2)
-                        gt = gt.transpose((2,0,1))
-                        viz = np.concatenate([pred, gt], axis=2)
-                    else:
-                        viz = np.concatenate([pred_images[0], target[0]], axis=2)
+                    viz = np.concatenate([pred_images[0], target[0]], axis=2)
                     writer.add_image(f'train/pred_img', viz, global_step=global_step)
 
             logs = {"loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
