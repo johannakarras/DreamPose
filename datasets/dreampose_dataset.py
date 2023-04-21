@@ -50,16 +50,12 @@ class DreamPoseDataset(Dataset):
         self.image_transforms = transforms.Compose(
             [
                 transforms.Resize(self.size, interpolation=transforms.InterpolationMode.BILINEAR),
-                #transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.3, hue=0.3),
-                #transforms.CenterCrop(size) if center_crop else transforms.RandomCrop(size),
                 transforms.ToTensor(),
-                #transforms.Normalize([0.5], [0.5]),
             ]
         )
 
         self.tensor_transforms = transforms.Compose(
             [
-                transforms.Normalize([0.5], [0.5]),
             ]
         )
 
@@ -90,6 +86,7 @@ class DreamPoseDataset(Dataset):
         instance_image = Image.open(frame_path)
         if not instance_image.mode == "RGB":
             instance_image = instance_image.convert("RGB")
+
         example["frame_i"] = self.image_transforms(instance_image)
         example["frame_prev"] = self.image_transforms(instance_image)
 
@@ -137,12 +134,11 @@ class DreamPoseDataset(Dataset):
             t = transforms.Compose([transforms.ToPILImage(),\
                                     transforms.Resize((h,w), interpolation=transforms.InterpolationMode.BILINEAR), \
                                     transforms.ToTensor(),\
-                                    transforms.Normalize([0.5], [0.5])])
+                                    ])
 
             # Apply transforms
             frame = transforms.functional.crop(frame, top, left, h_, w_) # random crop
 
-            example["frame_i"] = transforms.Normalize([0.5], [0.5])(key_frame) #t(key_frame)
             example["frame_j"] = t(frame)
 
             for pose_id in range(5):
@@ -171,18 +167,14 @@ class DreamPoseDataset(Dataset):
             t = transforms.Compose([transforms.ToPILImage(),\
                                     transforms.Resize((h,w), interpolation=transforms.InterpolationMode.BILINEAR), \
                                     transforms.ToTensor(),\
-                                    transforms.Normalize([0.5], [0.5])])
+                                    ])
 
             prev_frame = transforms.functional.crop(prev_frame, top, left, h_, w_) # random crop
             example["frame_prev"] = t(prev_frame)
 
-            example["frame_i"] = transforms.Normalize([0.5], [0.5])(key_frame) #t(key_frame)
-            example["frame_j"] = transforms.Normalize([0.5], [0.5])(frame)
-
             for pose_id in range(5):
                 start, end = 2*pose_id, 2*pose_id+2
                 dp = example['pose_j'][start:end]
-                dp = transforms.Normalize([0.5], [0.5])(dp)[0:2]
                 example["pose_j"][start:end] = dp.clone()
 
         return example

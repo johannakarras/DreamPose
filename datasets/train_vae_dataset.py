@@ -63,13 +63,13 @@ class DreamPoseDataset(Dataset):
                 transforms.Resize(self.size, interpolation=transforms.InterpolationMode.BILINEAR),
                 #transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.3, hue=0.3),
                 transforms.ToTensor(),
-                transforms.Normalize([0.5], [0.5]),
+                #transforms.Normalize([0.5], [0.5]),
             ]
         )
 
         self.tensor_transforms = transforms.Compose(
             [
-                transforms.Normalize([0.5], [0.5]),
+                #transforms.Normalize([0.5], [0.5]),
             ]
         )
 
