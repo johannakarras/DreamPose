@@ -8,6 +8,7 @@ def parse_args(input_args=None):
     parser.add_argument('--tb_dir', default="tb", help="Directory for tensorboard files")
     parser.add_argument('--cfg', default="cfg/train.cfg", help="Path to config file")
     parser.add_argument('--chkpt', default=None, help="Path to checkpoint -state file")
+    parser.add_argument("--run_name", type=str, default='dreampose-tb')
     parser.add_argument('--epoch', default=0, type=int, help="Which epoch to start training at")
     parser.add_argument("--revision", type=str, default=None, required=False, help="Revision of pretrained model identifier from huggingface.co/models.",)
     parser.add_argument("--tokenizer_name", type=str, default=None, help="Pretrained tokenizer name or path if not the same as model_name",)
