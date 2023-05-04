@@ -396,7 +396,6 @@ class StableDiffusionImg2ImgPipeline(DiffusionPipeline):
         guidance_scale: Optional[float] = 7.5,
         s1: float = 1.0, # strength of input pose
         s2: float = 1.0, # strength of input image
-        s3: float = 0.0, # strength of input image
         negative_prompt: Optional[Union[str, List[str]]] = None,
         num_images_per_prompt: Optional[int] = 1,
         eta: Optional[float] = 0.0,
@@ -462,10 +461,6 @@ class StableDiffusionImg2ImgPipeline(DiffusionPipeline):
             list of `bool`s denoting whether the corresponding generated image likely represents "not-safe-for-work"
             (nsfw) content, according to the `safety_checker`.
         """
-        message = "Please use `image` instead of `init_image`."
-        init_image = deprecate("init_image", "0.12.0", message, take_from=kwargs)
-
-        image = init_image or image
 
         # 1. Check inputs
         self.check_inputs(prompt, strength, callback_steps)

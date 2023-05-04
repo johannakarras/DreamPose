@@ -13,8 +13,6 @@ import math
 
 from diffusers import AutoencoderKL
 from diffusers.models import UNet2DConditionModel
-from diffusers.models import BasicTransformerBlock
-
 
 def get_unet(pretrained_model_name_or_path, revision, resolution=256, n_poses=5):
     # Load pretrained UNet layers
