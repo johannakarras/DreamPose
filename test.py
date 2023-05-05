@@ -51,7 +51,7 @@ print("Loading ", unet_path)
 unet_state_dict = torch.load(unet_path)
 new_state_dict = OrderedDict()
 for k, v in unet_state_dict.items():
-    name = k[7:] if k[:7] == 'module' else k 
+    name = k.replace('module.', '') #k[7:] if k[:7] == 'module' else k 
     new_state_dict[name] = v
 unet.load_state_dict(new_state_dict)
 unet = unet.cuda()
@@ -68,7 +68,7 @@ print("Loading ", adapter_chkpt)
 adapter_state_dict = torch.load(adapter_chkpt)
 new_state_dict = OrderedDict()
 for k, v in adapter_state_dict.items():
-    name = k[7:] if k[:7] == 'module' else k 
+    name = k.replace('module.', '')  #name = k[7:] if k[:7] == 'module' else k 
     new_state_dict[name] = v
 print(pipe.adapter.linear1.weight)
 pipe.adapter = Embedding_Adapter()
@@ -82,7 +82,7 @@ if args.custom_vae is not None:
     vae_state_dict = torch.load(vae_chkpt)
     new_state_dict = OrderedDict()
     for k, v in vae_state_dict.items():
-        name = k[7:] if k[:7] == 'module' else k 
+        name = k.replace('module.', '')  #name = k[7:] if k[:7] == 'module' else k 
         new_state_dict[name] = v
     pipe.vae.load_state_dict(new_state_dict)
     pipe.vae = pipe.vae.cuda()
@@ -92,12 +92,6 @@ if args.sampler == 'DDIM':
     print("Default scheduler = ", pipe.scheduler)
     pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
     print("New scheduler = ", pipe.scheduler)
-
-def inputs2img(input):
-    target_images = (input / 2 + 0.5).clamp(0, 1)
-    target_images = target_images.detach().cpu().numpy()
-    target_images = (target_images * 255).round().astype("uint8")
-    return target_images
 
 def visualize_dp(im, dp):
         #im = im.transpose((2, 0, 1))
@@ -179,11 +173,14 @@ for i, pose_path in enumerate(pose_paths):
                     frames=[]
                 )[0][0]
 
+        
 
         # Save pose and image
         save_path = f"{save_folder}/pred_#{j}.png"
         image = image.convert('RGB')
         image = np.array(image)
+        image = image - np.min(image)
+        image = (255*(image / np.max(image))).astype(np.uint8)
         cv2.imwrite(save_path, cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
 
