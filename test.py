@@ -84,6 +84,24 @@ if args.custom_vae is not None:
     for k, v in vae_state_dict.items():
         name = k.replace('module.', '')  #name = k[7:] if k[:7] == 'module' else k 
         new_state_dict[name] = v
+
+    # modify the keys to load the model. 
+    keys = list(new_state_dict.keys())
+    for k in keys:
+        if "query" in k:
+            new_k = k.replace("query", "to_q")
+            new_state_dict[new_k] =  new_state_dict.pop(k)
+        elif "key" in k:
+            new_k = k.replace("key", "to_k")
+            new_state_dict[new_k] =  new_state_dict.pop(k)
+        elif "value" in k:
+            new_k = k.replace("value", "to_v")
+            new_state_dict[new_k] =  new_state_dict.pop(k)
+        elif "proj_attn" in k:
+            new_k = k.replace("proj_attn", "to_out.0")
+            new_state_dict[new_k] =  new_state_dict.pop(k)
+
+
     pipe.vae.load_state_dict(new_state_dict)
     pipe.vae = pipe.vae.cuda()
 
